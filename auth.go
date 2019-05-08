@@ -2,6 +2,7 @@ package getnet
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -9,10 +10,11 @@ import (
 )
 
 // Auth dsjkfndsfkfjng
-func (api *API) Auth(ctx context.Context) (interface{}, error) {
+func (api *API) Auth(ctx context.Context) (AuthResponse, error) {
+	result := AuthResponse{}
 	URL, err := api.getURL()
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	URL.Path += "/auth/oauth/v2/token"
 	parameters := url.Values{}
@@ -25,24 +27,24 @@ func (api *API) Auth(ctx context.Context) (interface{}, error) {
 	// body := strings.NewReader(`scope=oob&grant_type=client_credentialsn`)
 	req, err := http.NewRequest("POST", URL.String(), nil)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	req.Header.Set("Authorization", api.Authentication())
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	defer resp.Body.Close()
 	byt, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
-	// err = json.Unmarshal(byt, &balance)
-	// if err != nil {
-	// 	return balance, err
-	// }
-	return string(byt), nil
+	err = json.Unmarshal(byt, &result)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
 }
 
 // Basic ZjkyYjQzMDgtY2Y5Zi00NjZmLTgwNjYtYjIxZGE3NzQxMDRhOjMzNDU4ODE0LTZkYTUtNDM0OC05M2E2LTNmYWI1ZWJiODM2MA==

@@ -18,6 +18,6 @@ func TestSpec(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		log.Println(response)
+		log.Println(response.AccessToken)
 	})
 }
