@@ -1,2 +1,2 @@
-# pagarme
-Pagar.me Golang Unofficial Library
+# getnet
+getnet.com.br Golang Unofficial Library
