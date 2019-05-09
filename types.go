@@ -7,3 +7,13 @@ type AuthResponse struct {
 	ExpiresIN   int    `json:"expires_in"`
 	Scope       string `json:"scope"`
 }
+
+// Bearer sdkfj
+func (auth AuthResponse) Bearer() string {
+	return "Bearer " + auth.AccessToken
+}
+
+// CardResonse sdfkjn
+type CardResonse struct {
+	NumberToken string `json:"number_token"`
+}
