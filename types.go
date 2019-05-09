@@ -12,8 +12,3 @@ type AuthResponse struct {
 func (auth AuthResponse) Bearer() string {
 	return "Bearer " + auth.AccessToken
 }
-
-// CardResonse sdfkjn
-type CardResonse struct {
-	NumberToken string `json:"number_token"`
-}
