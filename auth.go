@@ -3,14 +3,15 @@ package getnet
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
 // Auth dsjkfndsfkfjng
-func (api *API) Auth(ctx context.Context) (AuthResponse, error) {
-	result := AuthResponse{}
+func (api *API) Auth(ctx context.Context) (AuthFullResponse, error) {
+	result := AuthFullResponse{Code: api.DefaultCode()}
 	URL, err := api.getURL()
 	if err != nil {
 		return result, err
@@ -26,18 +27,24 @@ func (api *API) Auth(ctx context.Context) (AuthResponse, error) {
 	}
 	req.Header.Set("Authorization", api.Authentication())
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := api.defaultHTTPClient().Do(req)
 	if err != nil {
 		return result, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		err := errors.New("bad request getnet server")
+		return result, err
+	}
 	byt, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return result, err
 	}
-	err = json.Unmarshal(byt, &result)
+	payload := AuthResponse{}
+	err = json.Unmarshal(byt, &payload)
 	if err != nil {
 		return result, err
 	}
+	result.Response = payload
 	return result, nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
@@ -13,14 +14,20 @@ type CardTokenPayload struct {
 	CardNumber string `json:"card_number"`
 }
 
-// CardResonse sdfkjn
-type CardResonse struct {
+// CardResponse sdfkjn
+type CardFullResponse struct {
+	Code     int          `json:"code"`
+	Response CardResponse `json:"response"`
+}
+
+// CardResponse sdfkjn
+type CardResponse struct {
 	NumberToken string `json:"number_token"`
 }
 
 // CardToken dsjkfndsfkfjng
-func (api *API) CardToken(ctx context.Context, auth AuthResponse, cardNumber string) (CardResonse, error) {
-	result := CardResonse{}
+func (api *API) CardToken(ctx context.Context, auth AuthResponse, cardNumber string) (CardFullResponse, error) {
+	result := CardFullResponse{Code: api.DefaultCode()}
 	URL, err := api.getURL()
 	if err != nil {
 		return result, err
@@ -42,18 +49,25 @@ func (api *API) CardToken(ctx context.Context, auth AuthResponse, cardNumber str
 	req.Header.Set("Authorization", auth.Bearer())
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := api.defaultHTTPClient().Do(req)
+	result.Code = resp.StatusCode
 	if err != nil {
 		return result, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		err := errors.New("bad request getnet server")
+		return result, err
+	}
 	byt, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return result, err
 	}
-	err = json.Unmarshal(byt, &result)
+	payload := CardResponse{}
+	err = json.Unmarshal(byt, &payload)
 	if err != nil {
 		return result, err
 	}
+	result.Response = payload
 	return result, nil
 }

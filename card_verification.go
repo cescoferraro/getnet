@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -34,7 +36,11 @@ func (cardverification CardVerificationResponse) IsVerified() bool {
 }
 
 // CardVerification dsjkfndsfkfjng
-func (api *API) CardVerification(ctx context.Context, auth AuthResponse, payload CardVerificationPayload) (CardVerificationResponse, error) {
+func (api *API) CardVerification(
+	ctx context.Context,
+	auth AuthResponse,
+	payload CardVerificationPayload,
+) (CardVerificationResponse, error) {
 	result := CardVerificationResponse{}
 	URL, err := api.getURL()
 	if err != nil {
@@ -46,23 +52,26 @@ func (api *API) CardVerification(ctx context.Context, auth AuthResponse, payload
 		return result, err
 	}
 	body := bytes.NewReader(payloadBytes)
-
 	req, err := http.NewRequest("POST", URL.String(), body)
 	if err != nil {
 		return result, err
 	}
 	req.Header.Set("Authorization", auth.Bearer())
 	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := api.defaultHTTPClient().Do(req)
 	if err != nil {
 		return result, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		err := errors.New("bad request getnet server")
+		return result, err
+	}
 	byt, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return result, err
 	}
+	log.Println(string(byt))
 	err = json.Unmarshal(byt, &result)
 	if err != nil {
 		return result, err
